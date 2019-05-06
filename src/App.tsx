@@ -1,13 +1,21 @@
 import React, { useState } from 'react';
 import './App.css';
 import { Three } from './Three';
+import { useInputComponent } from './Components';
+import { Utils } from './utils';
 
 const App: React.FC = () => {
-  const [tubularSegmentsBase, setTubularSegmentsBase] = useState(128);
-  const [tubularSegmentsExp, setTubularSegmentsExp] = useState(3);
-  const [radialSegments, setParam1] = useState(3);
-  const [axisRotations, setParam2] = useState(19);
-  const [tubeRotations, setParam3] = useState(11);
+  const [tubularSegmentsBase, TubularSegmentsBaseInput] = useInputComponent(24);
+  const [tubularSegmentsExp, TubularSegmentsExpInput] = useInputComponent(0);
+  const [radialSegments, RadialSegmentsInput] = useInputComponent(16);
+  const [tubeDiameter, TubeDiameterInput] = useInputComponent(320);
+  const [axisRotations, AxisRotationsInput] = useInputComponent(17);
+  const [tubeRotations, TubeRotationsInput] = useInputComponent(7);
+  const [lightPositions, setLightPositions] = useState([
+    0, 2, 3,
+    -2, 6, 0,
+    2, 0, 3,
+  ]);
   return (
     <div className="App">
       <Three shapeParams={{
@@ -15,13 +23,23 @@ const App: React.FC = () => {
         tubularSegmentsBase,
         radialSegments,
         axisRotations,
-        tubeRotations
-      }} />
-      <input type="number" onChange={e => setTubularSegmentsBase(Number(e.target.value))} value={tubularSegmentsBase} />
-      <input type="number" onChange={e => setTubularSegmentsExp(Number(e.target.value))} value={tubularSegmentsExp} />
-      <input type="number" onChange={e => setParam1(Number(e.target.value))} value={radialSegments} />
-      <input type="number" onChange={e => setParam2(Number(e.target.value))} value={axisRotations} />
-      <input type="number" onChange={e => setParam3(Number(e.target.value))} value={tubeRotations} />
+        tubeRotations,
+        tubeDiameter,
+      }} lightParams={{ positions: lightPositions }} />
+      <button onClick={() => {
+        setLightPositions(
+          lightPositions.map(() => Utils.biRandom() * 7).slice()
+        )
+      }} >
+        Randomize Lights
+    </button>
+      {TubeDiameterInput}/1000
+      {TubularSegmentsBaseInput}
+      {"<<"}
+      {TubularSegmentsExpInput}
+      {RadialSegmentsInput}
+      {AxisRotationsInput}
+      {TubeRotationsInput}
     </div>
   );
 }

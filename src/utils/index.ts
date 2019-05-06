@@ -14,6 +14,18 @@ export class Utils {
     }
   }
 
+  static debounce(fn: Function, wait: number = 50) {
+    let id: number | null = null;
+
+    return (...args: any) => {
+      if (typeof id === 'number') clearTimeout(id);
+      id = setTimeout(() => {
+        fn(...args)
+        id = null;
+      }, wait);
+    }
+  }
+
   static repeatTime(fn: Function, wait: number = 50): _TimelineFn {
     let id: number;
 
@@ -45,4 +57,6 @@ export class Utils {
       }
     }
   }
+
+  static biRandom(): number { return 2 * Math.random() - 1 }
 }
