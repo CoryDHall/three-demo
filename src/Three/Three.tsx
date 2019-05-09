@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import * as THREE from 'three';
 import { updateViewSize } from './updateViewSize';
-import { useTHREE } from './hooks';
+import { useTHREE, useContainerForRenderer } from './hooks';
 import { Utils } from '../utils';
 import { ThreeContainer } from './ThreeContainer';
 import { Materials, Lights } from './builders';
@@ -90,13 +90,7 @@ function Three(props: ThreeProps) {
       scene.remove(light1, light2, light3, light4)
     };
   }, [props.lightParams])
-  useEffect(() => {
-    if (container.current === null) return;
-    if (renderer === null) return;
-    const { current } = container;
-
-    current.appendChild(renderer.domElement)
-  }, [renderer, container]);
+  useContainerForRenderer(renderer, container);
 
   const [w, h] = useResponsive(container);
 
