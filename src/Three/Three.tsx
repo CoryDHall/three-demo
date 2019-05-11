@@ -4,17 +4,19 @@ import { updateViewSize } from './updateViewSize';
 import { useTHREE, useContainerForRenderer } from './hooks';
 import { Utils } from '../utils';
 import { ThreeContainer } from './ThreeContainer';
-import { Materials, Lights } from './builders';
+import { Materials, Lights, GeometryTransforms } from './builders';
 import { useResponsive } from '../Components';
 
 interface ThreeProps {
   shapeParams: {
     tubeDiameter: number;
-    tubularSegmentsBase: number;
-    tubularSegmentsExp: number;
+    tubularSegments: number;
     radialSegments: number;
     axisRotations: number;
     tubeRotations: number;
+    transformPoints: number;
+    transformSkipPoints: number;
+    scale: number;
   },
   lightParams: {
     positions: number[]
@@ -31,9 +33,6 @@ function Three(props: ThreeProps) {
   useEffect(() => {
     const fn = Utils.repeatTime(() => {
       material.displacementScale += Math.sin((Date.now() >> 3) / 64) / 100
-      // material.displacementScale += Math.cos(Date.now() >> 8) / 50
-      // material.color.offsetHSL(.01, 0, 0)
-      // material.needsUpdate = true
     }, 0)
     fn.start()
 
@@ -41,14 +40,20 @@ function Three(props: ThreeProps) {
   }, [material])
   const [rotation, setRotation] = useState<[number, number, number]>([0, 0, 0]);
   useEffect(() => {
-    const geometry = new THREE.TorusKnotBufferGeometry(5, props.shapeParams.tubeDiameter / 1000, props.shapeParams.tubularSegmentsBase << props.shapeParams.tubularSegmentsExp, props.shapeParams.radialSegments, props.shapeParams.axisRotations, props.shapeParams.tubeRotations);
-    // const geometry = new THREE.OctahedronBufferGeometry(2, 1);
-    const arr = geometry.getAttribute('position').array as Float32Array;
-    for (let i = 0; i < arr.length; i += 6) {
-      arr[i] = Math.sinh(arr[i] / 5) * 5
-      arr[i + 1] = Math.sinh(arr[i + 1] / 5) * 5
-      arr[i + 2] = Math.sinh(arr[i + 2])
-    }
+    const {
+      scale,
+      radialSegments,
+      axisRotations,
+      transformSkipPoints,
+      transformPoints,
+      tubeDiameter,
+      tubeRotations,
+      tubularSegments,
+    } = props.shapeParams;
+    const geometry = new THREE.TorusKnotBufferGeometry(scale, tubeDiameter, tubularSegments, radialSegments, axisRotations, tubeRotations);
+    GeometryTransforms.make.bitwiseXY(transformPoints, 1)(geometry);
+    GeometryTransforms.make.sinhYZ(scale, transformSkipPoints)(geometry);
+    GeometryTransforms.make.bitwiseXZ(transformPoints, transformSkipPoints)(geometry);
     const mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.fromArray(rotation)
     mesh.castShadow = mesh.receiveShadow = true;
@@ -63,7 +68,7 @@ function Three(props: ThreeProps) {
     const anim = Utils.repeatAnimation(() => {
       mesh.rotation.x += 0.01;
       mesh.rotation.y += 0.01;
-      mesh.rotation.z -= 0.01;
+      mesh.rotation.z -= 0.02;
       updateRotation(mesh.rotation.toArray() as [number, number, number])
     })
     anim.start();
@@ -71,7 +76,16 @@ function Three(props: ThreeProps) {
       anim.stop();
       scene.remove(mesh)
     };
-  }, [props.shapeParams.tubeDiameter, props.shapeParams.tubularSegmentsExp, props.shapeParams.tubularSegmentsBase, props.shapeParams.radialSegments, props.shapeParams.axisRotations, props.shapeParams.tubeRotations]);
+  }, [
+      props.shapeParams.scale,
+      props.shapeParams.tubeDiameter,
+      props.shapeParams.tubularSegments,
+      props.shapeParams.radialSegments,
+      props.shapeParams.axisRotations,
+      props.shapeParams.tubeRotations,
+      props.shapeParams.transformPoints,
+      props.shapeParams.transformSkipPoints,
+    ]);
   useEffect(() => {
     const light1 = Lights.makePoint('ROSE', [1.4, 0, 1.2], props.lightParams.positions.slice(0, 3));
     scene.add(light1);

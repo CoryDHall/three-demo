@@ -15,11 +15,11 @@ const VALUE_TRANSFORMERS: {
   number: (v: string) => Number(v),
   text: (v: string) => v
 }
-export function useInputComponent<T>(initialValue: T, props?: _PInputProps): [T, React.ReactElement] {
+export function useInputComponent<T>(initialValue: T, props?: _PInputProps): [T, React.ReactElement, React.Dispatch<T>] {
   const [value, setValue] = useState(initialValue)
   const innerProps = Object.assign({ value: value.toString(), setValue }, DEFAULT_INPUT_PROPS, props)
 
-  return [value, <TransformInput {...innerProps} />];
+  return [value, <TransformInput {...innerProps} />, setValue];
 }
 
 function _valueTransform({ type = 'number' }: _PInputProps): _Transformer {
